@@ -2,7 +2,8 @@
 Use a thesaurus and a language toolkit to make any block of text sound smarter (or more pretentious) while maintaining (theoretically) correct grammar.
 Originally written Summer of 2014
 
-I was playing around with python as an interface for software from the Stanford natural Language Processing Group (http://nlp.stanford.edu/software/), a Java-based engine and started trying to disassemble and re-assemble sentences. 
+
+I was playing around with python as an interface for software from the Stanford Natural Language Processing Group (http://nlp.stanford.edu/software/), a Java-based engine and started trying to disassemble and re-assemble sentences. 
 
 A while ago I'd had the idea to look up every word in a sentence in a thesaurus and replace it with its longest synonym, but this would be largely ineffective because it would only work (well) with words in their base forms (e.g. "see" becomes "observe", but "seeing" is either unrecognized or becomes "observe" anyway). This seemed like an interesting and useful addition (I was also curious about the limits of the software, because it seemed quite accurate). 
 
