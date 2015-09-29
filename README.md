@@ -13,4 +13,4 @@ The result takes a paragraph as input, identifies the role of each word in a sen
 
 The final project (Smartifier4.py) is a little rough around the edges, but it was more out of curiosity than anything (I stopped once I had a working version with only mindless debugging left to do). Included is one of the text blocks I used to test final version, the "about me" section of http://xkcd.com.
 
-Edit (9/29/15): In the process of removing weird non-python dependencies (mostly the Stanford POSTagger). Currently the modified smartifier only requires a few python libraries: to set up, pip install pattern and nltk (and mechanize, but that'll probably go also). Then in python, import nltk, run nltk.download(), and download all-corpora.
+Edit (9/29/15): In the process of removing weird non-python dependencies (mostly the Stanford POSTagger). Currently the modified smartifier only requires a few python libraries: to set up, pip install pattern and nltk (and mechanize, but that'll probably go also). Then in python, import nltk, run nltk.download(), and download wordnet.
