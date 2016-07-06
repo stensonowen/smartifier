@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python2
 from nltk.corpus import wordnet as wn
 import pattern.en as pattern
 import spacy
@@ -8,9 +8,6 @@ def new_nlp():
     return spacy.en.English(parser=False, entity=False)
 
 def parse(nlp, sent):
-    #if type(sent) is not unicode:
-    #    #ew, python 2
-    #    sent = unicode(sent)
     return [(w.text, w.tag_) for w in nlp(sent)]
 
 
@@ -18,7 +15,7 @@ def parse(nlp, sent):
 class Word():
     Wn_tag = Pos_word = None
 
-    #@staticmethod
+    @staticmethod
     def TagToObj(tag):
         return {
             "JJ": Adjective,
@@ -29,7 +26,7 @@ class Word():
 
 
             
-    #@staticmethod
+    @staticmethod
     def new(word, pos):
         hint = pos[:2]
         form = Word.TagToObj(hint) or Word
@@ -107,7 +104,7 @@ class Verb(Word):
         return pattern.conjugate(new_base, desc)
 
 if __name__ == "__main__":
-    s = "the quick brown fox jumps over the lazy dog"
+    s = u"the quick brown fox jumps over the lazy dog"
     nlp = new_nlp()
     tokens = parse(nlp, s)
 
@@ -116,7 +113,6 @@ if __name__ == "__main__":
     for w in words:
         print(w.word, "\t", w.base())
 
-'''    
     a = Word("faster", "JJR")
     print(a.word, "\t", a.re_base("quick"))
 
@@ -128,7 +124,6 @@ if __name__ == "__main__":
     x = [a, b, c]
     #jprint("Bases: " + ", ".join([i.base() for i in x]))
     #print("Parses: " + ", ".join([i.parse() for i in x]))
-'''
 
 
 
