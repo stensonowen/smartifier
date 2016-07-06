@@ -1,16 +1,10 @@
-import mechanize, re, os
+import re, os
 from nltk.corpus import wordnet as wn
 from pattern.en import comparative, superlative, pluralize, conjugate, referenced
 from pattern.en import parse
 from datetime import datetime
+import requests
 
-br = mechanize.Browser()
-br.set_handle_equiv(True)
-br.set_handle_redirect(True)
-br.set_handle_referer(True)
-br.set_handle_robots(False)
-br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
-br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
 
 whitelist = ["be", "am", "is", "are", "was", "were", "been", "have", "had", "has"]
 
@@ -20,43 +14,22 @@ noun_forms = ["NN", "NNS"]
 verb_forms = ["VB", "VBD", "VBG", "VBN", "VBP", "VBZ"]
 
 
-def replace_string(oldstring, newstring, text):
-	while oldstring in text:
-		text = text[:text.index(oldstring)] + newstring + text[text.index(oldstring)+len(oldstring):]
-	return text
+
 
 def retrieve_data(word, pos):
-	try:
-		url = "http://words.bighugelabs.com/api/2/" + "11f898808fffe257228d17890b1101f1" + "/" + word + "/json"
-		html = br.open(url).read()
-
-		Synonyms, Antonyms, Relateds, Similars = [], [], [], []
-		categories = ["syn", "ant", "rel", "sim"]
-
-		html = re.sub('"', "", html)
-
-		pos = pos + ':{'
-		i = html.index(pos)
-		segment = html[i+len(pos):html.find("}", i)]
-
-		for category in categories:
-			title = category + ':['
-			if title in segment:
-				j = segment.index(title)
-				subsegment = segment[j+5:segment.find("]", j)]
-				if category == "syn":
-					Synonyms = subsegment.split(",")
-				elif category == "ant":
-					Antonyms = subsegment.split(",")
-				elif category == "rel":
-					Relateds = subsegment.split(",")
-				elif category == "sim":
-					Similars = subsegment.split(",")
-	except:
-		print "\nERROR: Failed to find synonyms\n"
-		return [word], [], [], []
-	else:
-		return Synonyms, Antonyms, Relateds, Similars
+    #use requests instead
+    #only interested in synonyms; ignore other results
+    synonyms = [word]
+    try:
+        url = "http://words.bighugelabs.com/api/2/{}/{}/json".format(
+                "11f898808fffe257228d17890b1101f1",
+                word)
+        json = requests.get(url).json
+        #get synonyms of the correct POS only
+        synonyms += json[pos]['syn']
+    except:
+        print("ERROR: Failed to find synonyms")
+    return synonyms
 
 def tag(sentence):
 	#tokens = sentence.split()
