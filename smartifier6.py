@@ -13,6 +13,7 @@ import re
 WHITELIST = set([ 
     #custom whitelist in addition to just common words
     "let",  # screw up "let's"
+    "'re",  # tries to parse second half of "you're" independently
     ])
 
 def get_synonyms(word, pos):
@@ -66,7 +67,8 @@ class Word():
     Wn_tag = Pos_word = None
 
     @staticmethod
-    def new(word, pos):
+    #def new(word, pos):
+    def new(token):
         tag_decode = {
             "JJ":   Adjective,
             "RB":   Adverb,
@@ -77,13 +79,15 @@ class Word():
         #hint = pos[:2]
         #form = tag_decode.get(hint) or Word
         for tag in tag_decode:
-            if pos.startswith(tag):
-                return tag_decode[tag](word,pos)
-        return Word(word, pos)
+            if token.tag_.startswith(tag):
+                return tag_decode[tag](token)
+        return Word(token)
 
-    def __init__(self, word, pos):
-        self.word = word
-        self.pos = pos
+    #def __init__(self, word, pos):
+    def __init__(self, token):
+        self.word   = token.text
+        self.pos    = token.tag_
+        self.space  = len(token.whitespace_)
 
     def base(self):
         #wn_tag = Word.TagToWn(self.pos) #noun/verb/ad[v|j]
@@ -96,8 +100,10 @@ class Word():
             return self.word
 
     def re_base(self, new_base):
-        return self.word
+        self.word = new_base
 
+    def __str__(self):
+        return self.word + " "*self.space
             
 
 
@@ -108,11 +114,11 @@ class Degree(Word):
     #adj or adv
     def re_base(self, new_base):
         if self.pos[-1] == "S":
-            return pattern.superlative(new_base)
+            self.word = pattern.superlative(new_base)
         elif self.pos[-1] == "R":
-            return pattern.comparative(new_base)
+            self.word = pattern.comparative(new_base)
         else:
-            return new_base
+            self.word = new_base
 
 
 class Adjective(Degree):
@@ -132,12 +138,12 @@ class Noun(Word):
     def re_base(self, new_base):
         if self.pos == "NNS":
             #plural common noun
-            return pattern.pluralize(new_base)
+            self.word = pattern.pluralize(new_base)
         elif self.pos.startswith("NNP"):
             #proper noun
-            return self.word
+            self.word = self.word
         else:
-            return new_base
+            self.word = new_base
 
 class ProperNoun(Noun):
     #Just exists for organization's sake
@@ -160,7 +166,7 @@ class Verb(Word):
                 }
         hint = self.pos[2:3]
         desc = tag_to_desc.get(hint) or "inf"   #base
-        return pattern.conjugate(new_base, desc)
+        self.word = pattern.conjugate(new_base, desc)
 
 def smartify(nlp, sent):
     if type(sent) is not unicode:
@@ -174,7 +180,8 @@ def smartify(nlp, sent):
     whitelist = set(whitelist)
 
     #make words lowercase to facilitate strcmps
-    words = [Word.new(w.text, w.tag_) for w in nlp(sent)]
+    #words = [Word.new(w.text, w.tag_) for w in nlp(sent)]
+    words = [Word.new(token) for token in nlp(sent)]
 
     results = []
     for word in words:
@@ -184,17 +191,18 @@ def smartify(nlp, sent):
         invalid_pos  = word.Pos_word is None
         invalid_word = base in whitelist or base in WHITELIST
         if invalid_pos or invalid_word:
-            results.append(word.word)
+            results.append(str(word))
         else:
             syns = get_synonyms(base, word.Pos_word)
             syn  = select_synonym(syns)
-            results.append(word.re_base(syn))
+            word.re_base(syn)
+            results.append(str(word))
     return results
 
 def fix(words):
     #words is a list of words; 
+    #most of this stuff is fixed by using spacy's spacing
     '''Things to fix:
-            * spaces before punctuation (,.?!)
         * spaces around hyphens
         * hyphenated pluralizations?
             * a/an fixes
@@ -206,26 +214,18 @@ def fix(words):
         #iterating by index allows easier lookahead/-behind
         #make sure all changes that conflict have mutually exclusive triggers
 
-        space = " " #if i>0 else "" #strip() at end
         word = words[i]
 
-        #handle contractions
-        if "'" in word:
-            space = ""
         #handle indefinite articles
-        elif word == "a" or word == "an" and i < len(words)-1:
+        if word == "a" or word == "an" and i < len(words)-1:
             word = pattern.article(words[i+1]) #, function="indefinite") 
-
-        if len(word) == 1 and word in '.,!?':
-            #this 'word' is punctuation
-            space = ""
 
 
         #capitalize first word
         if i == 0:
             word = word[0].upper() + word[1:]
 
-        sent += space + word
+        sent += word
     return sent.strip()
 
 
