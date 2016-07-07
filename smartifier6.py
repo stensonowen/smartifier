@@ -5,7 +5,15 @@ import pattern.en as pattern        #decline/conjugate
 import spacy                        #parse sentences
 
 import requests
+import re
 
+# TODO  you're  ->  you am ???
+# TODO  things  ->  belongingss
+
+WHITELIST = set([ 
+    #custom whitelist in addition to just common words
+    "let",  # screw up "let's"
+    ])
 
 def get_synonyms(word, pos):
     #fetch synonyms from bighugelabs.com
@@ -27,6 +35,7 @@ def get_synonyms(word, pos):
 
 def longest(lis):
     #lis a list of tuples of (word, len(word))
+    #returns whichever tuple has the longest second part
     best = ("",-1)
     for entry in lis:
         if entry[1] > best[1]:
@@ -36,6 +45,9 @@ def longest(lis):
 
 def select_synonym(syns):
     #return the synonym or phrase which contains the longest word
+    #If you want to change how the 'best' synonym is selected,
+    # this is the place to do it
+    #TODO: should hyphenate multi-word synonyms so results will make more sense?
     groups = [
             [(syn,len(word)) for word in syn.split()]
             for syn in syns]
@@ -56,14 +68,18 @@ class Word():
     @staticmethod
     def new(word, pos):
         tag_decode = {
-            "JJ": Adjective,
-            "RB": Adverb,
-            "NN": Noun,
-            "VB": Verb,
+            "JJ":   Adjective,
+            "RB":   Adverb,
+            "NNP:": ProperNoun,
+            "NN":   Noun,
+            "VB":   Verb,
             }
-        hint = pos[:2]
-        form = tag_decode.get(hint) or Word
-        return form(word, pos)
+        #hint = pos[:2]
+        #form = tag_decode.get(hint) or Word
+        for tag in tag_decode:
+            if pos.startswith(tag):
+                return tag_decode[tag](word,pos)
+        return Word(word, pos)
 
     def __init__(self, word, pos):
         self.word = word
@@ -114,10 +130,19 @@ class Noun(Word):
     Pos_word = "noun"
     
     def re_base(self, new_base):
-        if self.pos[-1] == "S":
+        if self.pos == "NNS":
+            #plural common noun
             return pattern.pluralize(new_base)
+        elif self.pos.startswith("NNP"):
+            #proper noun
+            return self.word
         else:
             return new_base
+
+class ProperNoun(Noun):
+    #Just exists for organization's sake
+    #Do not try to parse this; it's probably a waste of time
+    Wn_tag = Pos_word = None
 
 
 class Verb(Word):
@@ -141,26 +166,68 @@ def smartify(nlp, sent):
     if type(sent) is not unicode:
         sent = unicode(sent)
 
+    #f = open("whitelist_1k", "r")
+    #   https://simple.wikipedia.org/wiki/Wikipedia:List_of_1000_basic_words
     f = open("whitelist", "r")
     whitelist = f.readlines()
     whitelist = [word.strip().lower() for word in whitelist]
     whitelist = set(whitelist)
 
+    #make words lowercase to facilitate strcmps
     words = [Word.new(w.text, w.tag_) for w in nlp(sent)]
 
     results = []
     for word in words:
         #convert word if it is a specific class
         #only smartify noun/verb/ad[j|v] 
+        base = word.base().lower()
         invalid_pos  = word.Pos_word is None
-        invalid_word = word.word.lower() in whitelist
+        invalid_word = base in whitelist or base in WHITELIST
         if invalid_pos or invalid_word:
             results.append(word.word)
         else:
-            syns = get_synonyms(word.base(), word.Pos_word)
+            syns = get_synonyms(base, word.Pos_word)
             syn  = select_synonym(syns)
             results.append(word.re_base(syn))
     return results
+
+def fix(words):
+    #words is a list of words; 
+    '''Things to fix:
+            * spaces before punctuation (,.?!)
+        * spaces around hyphens
+        * hyphenated pluralizations?
+            * a/an fixes
+            * capitalize: proper nouns / first words
+        * quotation marks?
+    ''' 
+    sent = ""
+    for i in range(len(words)):
+        #iterating by index allows easier lookahead/-behind
+        #make sure all changes that conflict have mutually exclusive triggers
+
+        space = " " #if i>0 else "" #strip() at end
+        word = words[i]
+
+        #handle contractions
+        if "'" in word:
+            space = ""
+        #handle indefinite articles
+        elif word == "a" or word == "an" and i < len(words)-1:
+            word = pattern.article(words[i+1]) #, function="indefinite") 
+
+        if len(word) == 1 and word in '.,!?':
+            #this 'word' is punctuation
+            space = ""
+
+
+        #capitalize first word
+        if i == 0:
+            word = word[0].upper() + word[1:]
+
+        sent += space + word
+    return sent.strip()
+
 
 
 
@@ -170,7 +237,8 @@ if __name__ == "__main__":
     s = "what the fuck did you just say about me you little bitch?"
     s = "obama said you're fat"
     s = "is it true?"
-    s = "what the fuck did you just say about me you little bitch?"
+    s = "I am seated in an office, surrounded by heads and bodies"
+    s = '"That\'s what", she said'
 
     nlp = spacy.en.English(tagger=True, parser=False, entity=False)
     t = smartify(nlp, s)
