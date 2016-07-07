@@ -7,13 +7,18 @@ import spacy                        #parse sentences
 import requests
 import re
 
-# TODO  you're  ->  you am ???
-# TODO  things  ->  belongingss
+# TODO  things  ->  belongingss ??
+#   wordnet.morphy("things","n") -> "things"
+#       wordnet fails to get base of word
+#       so a BHT synonym for "things" is "belongings"
+#       which is assumed to also be singular
+#       so pattern tries to pluralize it by adding an s
 
 WHITELIST = set([ 
     #custom whitelist in addition to just common words
     "let",  # screw up "let's"
-    "'re",  # tries to parse second half of "you're" independently
+#    "'re",  # tries to parse second half of "you're" independently
+#    "'s",   # same with "it's"
     ])
 
 def get_synonyms(word, pos):
@@ -48,7 +53,7 @@ def select_synonym(syns):
     #return the synonym or phrase which contains the longest word
     #If you want to change how the 'best' synonym is selected,
     # this is the place to do it
-    #TODO: should hyphenate multi-word synonyms so results will make more sense?
+    #TODO: should maybe hyphenate multi-word synonyms so results will make more sense?
     groups = [
             [(syn,len(word)) for word in syn.split()]
             for syn in syns]
@@ -56,7 +61,8 @@ def select_synonym(syns):
     return longest(bests)[0]
 
 
-def parse(nlp, sent):
+def parse_(nlp, sent):
+    #TODO: delete
     if type(sent) is not unicode:
         sent = unicode(sent)
     return [(w.text, w.tag_) for w in nlp(sent)]
@@ -66,9 +72,10 @@ def parse(nlp, sent):
 class Word():
     Wn_tag = Pos_word = None
 
+    #ProperNoun is kind of assymetric; 
+    # What's the best way to handle it?
     @staticmethod
-    #def new(word, pos):
-    def new(token):
+    def new_(token):
         tag_decode = {
             "JJ":   Adjective,
             "RB":   Adverb,
@@ -83,14 +90,30 @@ class Word():
                 return tag_decode[tag](token)
         return Word(token)
 
-    #def __init__(self, word, pos):
+    @staticmethod
+    def new(token):
+        tag_decode = {
+            "JJ":   Adjective,
+            "RB":   Adverb,
+            "NN":   Noun,
+            "VB":   Verb,
+            }
+        hint = token.tag_[:2]
+        if token.tag_ == "NNP":
+            form = ProperNoun
+        else:
+            form = tag_decode.get(hint) or Word
+        return form(token)
+
+
     def __init__(self, token):
         self.word   = token.text
         self.pos    = token.tag_
         self.space  = len(token.whitespace_)
+        #store spacy datum for whether word followed by spacy
+        #spacy.Doc better at parsing than I am
 
     def base(self):
-        #wn_tag = Word.TagToWn(self.pos) #noun/verb/ad[v|j]
         wn_tag = self.Wn_tag or None
         if wn_tag and len(self.pos) > 2:
             #not base form already
@@ -188,7 +211,7 @@ def smartify(nlp, sent):
         #convert word if it is a specific class
         #only smartify noun/verb/ad[j|v] 
         base = word.base().lower()
-        invalid_pos  = word.Pos_word is None
+        invalid_pos  = word.Pos_word is None or "'" in base
         invalid_word = base in whitelist or base in WHITELIST
         if invalid_pos or invalid_word:
             results.append(str(word))
@@ -203,11 +226,10 @@ def fix(words):
     #words is a list of words; 
     #most of this stuff is fixed by using spacy's spacing
     '''Things to fix:
-        * spaces around hyphens
-        * hyphenated pluralizations?
+            * spaces around hyphens
             * a/an fixes
             * capitalize: proper nouns / first words
-        * quotation marks?
+            * quotation marks?
     ''' 
     sent = ""
     for i in range(len(words)):
@@ -217,9 +239,8 @@ def fix(words):
         word = words[i]
 
         #handle indefinite articles
-        if word == "a" or word == "an" and i < len(words)-1:
+        if (word == "a" or word == "an") and i < len(words)-1:
             word = pattern.article(words[i+1]) #, function="indefinite") 
-
 
         #capitalize first word
         if i == 0:
@@ -235,10 +256,12 @@ if __name__ == "__main__":
     s = "the quick brown fox jumps over the lazy dog"
     s = "stacy's mom has got it going on"
     s = "what the fuck did you just say about me you little bitch?"
-    s = "obama said you're fat"
-    s = "is it true?"
     s = "I am seated in an office, surrounded by heads and bodies"
     s = '"That\'s what", she said'
+    s = "Bush hid the facts."
+    s = "Abraham Lincoln once said, \"If you're a racist, I will attack you with the North,\" and those are the principles that I carry with me in the workplace."
+    s = "rtifier6.smartify(nlp, s))We did not manufacture the algorithmic rule. The algorithmic rule systematically finds Jesus. The algorithmic rule obliterated Jeeves.The algorithmic rule is criminalised in China. The algorithmic rule is from Jersey. The algorithmic rule perpetually finds Jesus.This is not the algorithmic rule. This is penny-pinching."
+    s = "In soft regions are born soft men."
 
     nlp = spacy.en.English(tagger=True, parser=False, entity=False)
     t = smartify(nlp, s)
