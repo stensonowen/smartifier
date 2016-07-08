@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from nltk.corpus import wordnet     #parse words
 import pattern.en as pattern        #decline/conjugate
@@ -34,9 +34,9 @@ def get_synonyms(word, pos):
         #get synonyms of the correct POS only
         synonyms += json[pos]['syn']
     except ValueError:
-        print "Failed to find word: " + str(word) + " (" + str(pos) + ")"
+        print("Failed to find word: " + str(word) + " (" + str(pos) + ")")
     except KeyError:
-        print "Failed to find part of speech " + str(word) + " (" + str(pos) + ")"
+        print("Failed to find part of speech " + str(word) + " (" + str(pos) + ")")
     return synonyms
 
 
@@ -64,8 +64,8 @@ def select_synonym(syns):
 
 def parse_(nlp, sent):
     #TODO: delete
-    if type(sent) is not unicode:
-        sent = unicode(sent)
+    #if type(sent) is not unicode:
+    #    sent = unicode(sent)
     return [(w.text, w.tag_) for w in nlp(sent)]
 
 
@@ -193,8 +193,8 @@ class Verb(Word):
         self.word = pattern.conjugate(new_base, desc)
 
 def smartify(nlp, sent):
-    if type(sent) is not unicode:
-        sent = unicode(sent)
+    #if type(sent) is not unicode:
+    #    sent = unicode(sent)
 
     #f = open("whitelist_1k", "r")
     f = open("whitelist", "r")
@@ -266,16 +266,17 @@ if __name__ == "__main__":
 
     nlp = spacy.en.English(tagger=True, parser=False, entity=False)
     t = smartify(nlp, s)
-    print " ".join(t)
+    #print(" ".join(t))
+    print(fix(t))
 
 
 
 if __name__ == "x__main__":
     #print get_synonyms("word", "noun")
     words = ["alpha", "beta", "gamma", "delta", "epsilon"]
-    print select_synonym(words)
+    print(select_synonym(words))
     words2 = ["a", "b b b b b b b", "exc f"]
-    print select_synonym(words2)
+    print(select_synonym(words2))
 
 
 if __name__ == "y__main__":
@@ -284,12 +285,12 @@ if __name__ == "y__main__":
     tokens = parse(nlp, s)
 
     words = [Word.new(word,pos) for (word,pos) in tokens]
-    print "word \t base \t parse\n" 
+    print("word \t base \t parse\n")
     for w in words:
-        print w.word, "\t", w.base() 
+        print(w.word, "\t", w.base())
 
     a = Word("faster", "JJR")
-    print a.word, "\t", a.re_base("quick") 
+    print(a.word, "\t", a.re_base("quick"))
 
 
 
