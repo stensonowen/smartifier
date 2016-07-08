@@ -14,12 +14,13 @@ import re
 #       which is assumed to also be singular
 #       so pattern tries to pluralize it by adding an s
 
-WHITELIST = set([ 
+'''WHITELIST = set([ 
     #custom whitelist in addition to just common words
     "let",  # screw up "let's"
 #    "'re",  # tries to parse second half of "you're" independently
 #    "'s",   # same with "it's"
     ])
+'''
 
 def get_synonyms(word, pos):
     #fetch synonyms from bighugelabs.com
@@ -196,7 +197,6 @@ def smartify(nlp, sent):
         sent = unicode(sent)
 
     #f = open("whitelist_1k", "r")
-    #   https://simple.wikipedia.org/wiki/Wikipedia:List_of_1000_basic_words
     f = open("whitelist", "r")
     whitelist = f.readlines()
     whitelist = [word.strip().lower() for word in whitelist]
@@ -212,7 +212,7 @@ def smartify(nlp, sent):
         #only smartify noun/verb/ad[j|v] 
         base = word.base().lower()
         invalid_pos  = word.Pos_word is None or "'" in base
-        invalid_word = base in whitelist or base in WHITELIST
+        invalid_word = base in whitelist #or base in WHITELIST
         if invalid_pos or invalid_word:
             results.append(str(word))
         else:
@@ -262,6 +262,7 @@ if __name__ == "__main__":
     s = "Abraham Lincoln once said, \"If you're a racist, I will attack you with the North,\" and those are the principles that I carry with me in the workplace."
     s = "rtifier6.smartify(nlp, s))We did not manufacture the algorithmic rule. The algorithmic rule systematically finds Jesus. The algorithmic rule obliterated Jeeves.The algorithmic rule is criminalised in China. The algorithmic rule is from Jersey. The algorithmic rule perpetually finds Jesus.This is not the algorithmic rule. This is penny-pinching."
     s = "In soft regions are born soft men."
+    s = "The major problem—one of the major problems, for there are several—one of the many major problems with governing people is that of whom you get to do it; or rather of who manages to get people to let them do it to them. To summarize: it is a well-known fact that those people who must want to rule people are, ipso facto, those least suited to do it. To summarize the summary: anyone who is capable of getting themselves made President should on no account be allowed to do the job." 
 
     nlp = spacy.en.English(tagger=True, parser=False, entity=False)
     t = smartify(nlp, s)
