@@ -2,19 +2,16 @@
 Vagrant.configure("2") do |config|
 
 	#base box
-	#config.vm.box = "hashicorp/precise64"
 	config.vm.box = "debian/jessie64"
 
-	#backup url
-	# config.vm.box_url = "http://files.vagrantup.com/precise32.box"
-
-    #set name
-	config.vm.define :Smartifier_Box do |t|
+    #set name and RAM
+	config.vm.provider "virtualbox" do |v|
+		v.name = "Smartifier_Box"
+		v.memory = 1536
 	end
 
-    #exec scripts
-    config.vm.provision "shell", path: "vagrant.sh"
-
+    #run vagrant.sh as user
+    config.vm.provision "shell", path: "vagrant.sh", privileged: false
 
 end
 

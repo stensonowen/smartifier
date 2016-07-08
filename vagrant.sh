@@ -1,26 +1,23 @@
 #!/bin/sh
-
-echo HELLO WORLD >> ~/TESTTEST
-echo "HELLO WORLD"
+#whole thing takes 10-30 minutes
+#run as user not root or pip screws up
 
 sudo apt-get update
 #sudo apt-get upgrade -y
 
-#install nltk
-#sudo apt-get install python3-setuptools python-setuptools
-#sudo easy_install pip3
-#sudo apt-get install python3-minimal
-#
-#sudo apt-get install python3-setuptools
-#sudo easy_install3 pip
-#
-#wget https://bootstrap.pypa.io/get-pip.py
-
+#pip
 sudo apt-get install python3-pip -y
-pip3 install --user nltk
-#pip3 install --user spacy
 
+#spacy (takes ~10 minutes on its own)
+pip3 install --user spacy
+python3 -m spacy.en.download
+
+#pattern:
 sudo apt-get install git -y
-git clone https://github.com/pattern3/pattern -o ~/pattern3
-cp ~/pattern3/pattern /vagrant -r
+git clone https://github.com/pattern3/pattern
+cp /home/vagrant/pattern/pattern /vagrant -r
+
+#nltk
+sudo apt-get install python3-nltk -y
+python3 -c "import nltk; nltk.download('wordnet')"
 
