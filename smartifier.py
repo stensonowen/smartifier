@@ -263,6 +263,8 @@ if __name__ == "w__main__":
     s = "rtifier6.smartify(nlp, s))We did not manufacture the algorithmic rule. The algorithmic rule systematically finds Jesus. The algorithmic rule obliterated Jeeves.The algorithmic rule is criminalised in China. The algorithmic rule is from Jersey. The algorithmic rule perpetually finds Jesus.This is not the algorithmic rule. This is penny-pinching."
     s = "In soft regions are born soft men."
     s = "The major problem—one of the major problems, for there are several—one of the many major problems with governing people is that of whom you get to do it; or rather of who manages to get people to let them do it to them. To summarize: it is a well-known fact that those people who must want to rule people are, ipso facto, those least suited to do it. To summarize the summary: anyone who is capable of getting themselves made President should on no account be allowed to do the job." 
+    s = "The path of the righteous man is beset on all sides by the iniquities of the selfish and the tyranny of evil men. Blessed is he, who in the name of charity and good will, shepherds the weak through the valley of darkness, for he is truly his brother’s keeper and the finder of lost children. And I will strike down upon thee with great vengeance and furious anger those who would attempt to poison and destroy my brothers. And you will know my name is the Lord when I lay my vengeance upon thee."
+
 
     nlp = spacy.en.English(tagger=True, parser=False, entity=False)
     t = smartify(nlp, s)
@@ -314,7 +316,7 @@ if __name__ == "__main__":
     result = smartify(nlp, text)
     result = fix(result)
 
-    args.output.write(result)
+    args.output.write(result + "\n")
 
     args.input.close()
     args.output.close()
