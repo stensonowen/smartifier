@@ -5,7 +5,7 @@ import pattern.en as pattern        #decline/conjugate
 import spacy                        #parse sentences
 
 import requests
-import re
+import argparse, sys, re
 
 # TODO  things  ->  belongingss ??
 #   wordnet.morphy("things","n") -> "things"
@@ -252,7 +252,7 @@ def fix(words):
 
 
 
-if __name__ == "__main__":
+if __name__ == "w__main__":
     s = "the quick brown fox jumps over the lazy dog"
     s = "stacy's mom has got it going on"
     s = "what the fuck did you just say about me you little bitch?"
@@ -269,14 +269,6 @@ if __name__ == "__main__":
     #print(" ".join(t))
     print(fix(t))
 
-
-
-if __name__ == "x__main__":
-    #print get_synonyms("word", "noun")
-    words = ["alpha", "beta", "gamma", "delta", "epsilon"]
-    print(select_synonym(words))
-    words2 = ["a", "b b b b b b b", "exc f"]
-    print(select_synonym(words2))
 
 
 if __name__ == "y__main__":
@@ -300,6 +292,34 @@ if __name__ == "y__main__":
     x = [a, b, c]
     #jprint("Bases: " + ", ".join([i.base() for i in x]))
     #print("Parses: " + ", ".join([i.parse() for i in x]))
+
+
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument('input',  
+            nargs   = '?', 
+            type    = argparse.FileType('r'), 
+            default = sys.stdin,
+            help    = "File to read input from; default is stdin")
+    ap.add_argument('output', 
+            nargs   = '?', 
+            type    = argparse.FileType('w'), 
+            default = sys.stdout,
+            help    = "File to write output to; default is stdout")
+    args = ap.parse_args()
+
+    text = args.input.read()
+    nlp = spacy.en.English(tagger=True, parser=False, entity=False)
+    result = smartify(nlp, text)
+    result = fix(result)
+
+    args.output.write(result)
+
+    args.input.close()
+    args.output.close()
+
+        
 
 
 
