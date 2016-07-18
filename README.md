@@ -15,9 +15,9 @@ Unfortunately, pattern is only for Python2. There is an [admirable effort](https
 
 ###Quick Setup
 
-`vagrant up`, `vagrant provision`, `vagrant ssh`, `cd /vagrant/`, `python3 smartifier.py input output`
+`vagrant up`, `vagrant ssh`, `python3 /vagrant/smartifier.py input output`
 
-Provisioning the vagrant box can take a little while; the brunt of the setup is downloading the debian image (~300MB), setting up the VM, and downloading spaCy data (~500MB). 
+Provisioning the vagrant box can take a little while; the brunt of the setup is downloading the debian image (~300MB), setting up the VM, and downloading spaCy data (~500MB). On a mediocre machine with a mediocre internet connection it takes about 30 minutes.
 
 Once set up, the python script can take positional input/output arguments or use standard input/output. For example, `echo "the quick brown fox jumps over the lazy dog" | python3 smartifier.py  > output`.
 

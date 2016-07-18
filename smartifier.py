@@ -14,13 +14,6 @@ import argparse, sys, re
 #       which is assumed to also be singular
 #       so pattern tries to pluralize it by adding an s
 
-'''WHITELIST = set([ 
-    #custom whitelist in addition to just common words
-    "let",  # screw up "let's"
-#    "'re",  # tries to parse second half of "you're" independently
-#    "'s",   # same with "it's"
-    ])
-'''
 
 def get_synonyms(word, pos):
     #fetch synonyms from bighugelabs.com
@@ -196,14 +189,8 @@ def smartify(nlp, sent):
     #if type(sent) is not unicode:
     #    sent = unicode(sent)
 
-    #f = open("whitelist_1k", "r")
-    f = open("whitelist", "r")
-    whitelist = f.readlines()
-    whitelist = [word.strip().lower() for word in whitelist]
-    whitelist = set(whitelist)
+    from whitelist import whitelist
 
-    #make words lowercase to facilitate strcmps
-    #words = [Word.new(w.text, w.tag_) for w in nlp(sent)]
     words = [Word.new(token) for token in nlp(sent)]
 
     results = []
@@ -270,30 +257,6 @@ if __name__ == "w__main__":
     t = smartify(nlp, s)
     #print(" ".join(t))
     print(fix(t))
-
-
-
-if __name__ == "y__main__":
-    s = "the quick brown fox jumps over the lazy dog"
-    nlp = new_nlp()
-    tokens = parse(nlp, s)
-
-    words = [Word.new(word,pos) for (word,pos) in tokens]
-    print("word \t base \t parse\n")
-    for w in words:
-        print(w.word, "\t", w.base())
-
-    a = Word("faster", "JJR")
-    print(a.word, "\t", a.re_base("quick"))
-
-
-
-    a = Word.new("green", "JJ")
-    b = Word.new("happiest", "VBZ")
-    c = Word.new("gorilla", "VBD")
-    x = [a, b, c]
-    #jprint("Bases: " + ", ".join([i.base() for i in x]))
-    #print("Parses: " + ", ".join([i.parse() for i in x]))
 
 
 

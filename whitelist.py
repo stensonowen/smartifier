@@ -1,3 +1,5 @@
+whitelist = set(
+        '''
 let
 
 the
@@ -99,4 +101,5 @@ down
 side
 been
 now
+    '''.strip().lower().split())
 
